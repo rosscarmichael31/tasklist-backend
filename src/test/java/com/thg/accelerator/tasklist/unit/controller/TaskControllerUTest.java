@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thg.accelerator.tasklist.controller.TaskController;
 import com.thg.accelerator.tasklist.model.Task;
 import com.thg.accelerator.tasklist.respository.TaskDatabaseRepository;
+import com.thg.accelerator.tasklist.service.LabelService;
 import com.thg.accelerator.tasklist.service.TaskService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,8 @@ class TaskControllerUTest {
     MockMvc mockMvc;
     @MockBean
     TaskService taskService;
+    @MockBean
+    LabelService labelService;
     @MockBean
     TaskDatabaseRepository taskDatabaseRepository;
 
