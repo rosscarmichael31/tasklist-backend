@@ -18,11 +18,14 @@ public class Task {
     private boolean complete;
     private boolean inProgress;
     private int priority;
-    @ManyToMany(fetch=FetchType.LAZY)
-    @JoinTable(name = "TASK_LABELS", joinColumns = @JoinColumn(name="task_id"), inverseJoinColumns = @JoinColumn(name="label_id"))
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "TASK_LABELS",
+            joinColumns = @JoinColumn(name = "task_id"),
+            inverseJoinColumns = @JoinColumn(name = "label_id")
+    )
     private Set<Label> labels = new HashSet<>();
-
-    protected Task() {}
+    public Task(){}
 
     public Task(String description, boolean complete, boolean inProgress, int priority) {
         if (description == null || description.trim().equals("")) {
@@ -84,6 +87,20 @@ public class Task {
     public void setLabels(Set<Label> labels) {
         this.labels = labels;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Task task = (Task) o;
+        return id == task.id && complete == task.complete && inProgress == task.inProgress && priority == task.priority && Objects.equals(description, task.description) && Objects.equals(labels, task.labels);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, description, complete, inProgress, priority, labels);
+    }
+
     @Override
     public String toString() {
         return "com.thg.accelerator.tasklist.model.Task{" +
@@ -92,20 +109,7 @@ public class Task {
                 ", complete=" + complete +
                 ", inProgress=" + inProgress +
                 ", priority=" + priority +
+                ", labels=" + labels +
                 '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Task task = (Task) o;
-        return id == task.id && complete == task.complete && inProgress == task.inProgress &&
-                priority == task.priority && description.equals(task.description);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, description, complete, inProgress, priority);
     }
 }

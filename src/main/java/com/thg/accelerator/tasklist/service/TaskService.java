@@ -66,9 +66,4 @@ public class TaskService implements TaskServiceInterface {
     public void delete(long id) {
         taskDatabaseRepository.deleteById(id);
     }
-
-    public void addLabels(Task task, Set<Label> labels) {
-        task.getLabels().addAll(labels);
-        taskDatabaseRepository.save(task);
-    }
 }

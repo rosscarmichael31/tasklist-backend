@@ -1,10 +1,11 @@
 package com.thg.accelerator.tasklist.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import org.hibernate.annotations.GenericGenerator;
+
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "LABELS")
@@ -15,11 +16,10 @@ public class Label {
     private long id;
     private String name;
 
-    protected Label() {}
+    @ManyToMany(mappedBy = "labels")
+    private Set<Task> tasks = new HashSet<>();
 
-    public Label(String name) {
-        this.name = name;
-    }
+    public Label() {}
 
     public long getId() {
         return id;
@@ -28,6 +28,7 @@ public class Label {
     public void setId(long id) {
         this.id = id;
     }
+
     public String getName() {
         return name;
     }
@@ -36,11 +37,33 @@ public class Label {
         this.name = name;
     }
 
+    public Set<Task> getTasks() {
+        return tasks;
+    }
+
+    public void setTasks(Set<Task> tasks) {
+        this.tasks = tasks;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Label label = (Label) o;
+        return id == label.id && Objects.equals(name, label.name) && Objects.equals(tasks, label.tasks);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, tasks);
+    }
+
     @Override
     public String toString() {
-        return "Label{" +
+        return "com.thg.accelerator.tasklist.model.Label{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
+                ", tasks=" + tasks +
                 '}';
     }
 }

@@ -8,21 +8,13 @@ import java.util.Optional;
 
 @Component
 public interface TaskServiceInterface {
-
     Task create(Task task);
-
     Optional<Task> findById(long id);
-
     List<Task> findAll();
-
     List<Task> findByPriority();
-
     List<Task> findByInProgress();
-
     List<Task> findByIncomplete();
-
     Task update(Task task, long id);
-
     void delete(long id);
 
 }

@@ -2,16 +2,17 @@ package com.thg.accelerator.tasklist.controller;
 
 import com.thg.accelerator.tasklist.model.Label;
 import com.thg.accelerator.tasklist.model.Task;
+import com.thg.accelerator.tasklist.model.TaskDto;
+import com.thg.accelerator.tasklist.service.LabelService;
 import com.thg.accelerator.tasklist.service.TaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.thg.accelerator.tasklist.controller.Query.*;
 
@@ -20,29 +21,30 @@ import static com.thg.accelerator.tasklist.controller.Query.*;
 @RequestMapping("/tasks")
 public class TaskController {
     private final TaskService taskService;
+    private final LabelService labelService;
 
-    public TaskController(TaskService taskService) {
+    public TaskController(TaskService taskService, LabelService labelService) {
         this.taskService = taskService;
+        this.labelService = labelService;
     }
 
-    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public Task create(@Valid @RequestBody Task task) {
-        return taskService.create(task);
-    }
-
-    //TODO: NEW
-    @PostMapping("/{id}/labels")
-    public ResponseEntity<Task> addLabels(@PathVariable("id") long id, @RequestBody Set<Label> labels) {
-        Optional<Task> task = taskService.findById(id);
-        if (task.isPresent()) {
-            Task updatedTask = task.get();
-            updatedTask.setLabels(labels);
-            taskService.update(updatedTask, id);
-            return ResponseEntity.ok(updatedTask);
-        } else {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<TaskDto> create(@RequestBody TaskDto taskDto) {
+        Task task = taskService.create(
+                new Task(taskDto.getDescription(), taskDto.isComplete(), taskDto.isInProgress(), taskDto.getPriority())
+        );
+        System.out.println(taskDto);
+        if (!taskDto.getLabelNames().isEmpty()) {
+            Set<Label> labels = taskDto.getLabelNames()
+                    .stream()
+                    .map(labelService::findOrCreateLabel)
+                    .collect(Collectors.toSet());
+            task.setLabels(labels);
+            taskService.update(task, task.getId());
         }
+
+        TaskDto response = new TaskDto(task);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
