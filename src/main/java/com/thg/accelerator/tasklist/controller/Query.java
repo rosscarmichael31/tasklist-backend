@@ -11,6 +11,15 @@ public enum Query {
         this.label = label;
     }
 
+    public static Query fromString(String text) {
+        for (Query q : Query.values()) {
+            if (q.label.equalsIgnoreCase(text)) {
+                return q;
+            }
+        }
+        throw new IllegalArgumentException("illegal query string");
+    }
+
     public String getLabel() {
         return label;
     }

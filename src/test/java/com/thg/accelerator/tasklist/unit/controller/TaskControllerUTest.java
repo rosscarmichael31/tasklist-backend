@@ -3,14 +3,18 @@ package com.thg.accelerator.tasklist.unit.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thg.accelerator.tasklist.controller.TaskController;
 import com.thg.accelerator.tasklist.model.Task;
+import com.thg.accelerator.tasklist.model.TaskDTO;
 import com.thg.accelerator.tasklist.respository.TaskDatabaseRepository;
 import com.thg.accelerator.tasklist.service.LabelService;
+import com.thg.accelerator.tasklist.service.TaskDTOMapper;
+import com.thg.accelerator.tasklist.service.TaskMapper;
 import com.thg.accelerator.tasklist.service.TaskService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,7 +27,7 @@ import java.util.Optional;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(TaskController.class)
+@SpringBootTest
 @AutoConfigureMockMvc
 class TaskControllerUTest {
     @Autowired
@@ -34,6 +38,10 @@ class TaskControllerUTest {
     LabelService labelService;
     @MockBean
     TaskDatabaseRepository taskDatabaseRepository;
+    @Autowired
+    TaskMapper taskmapper;
+    @Autowired
+    TaskDTOMapper taskDTOMapper = new TaskDTOMapper();
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -41,19 +49,21 @@ class TaskControllerUTest {
     @Test
     void create() throws Exception {
         Task task = new Task("test_task", true, true, 1);
-        when(taskService.create(task)).thenReturn(task);
+        TaskDTO taskDTO = taskDTOMapper.apply(task);
+
+        when(taskService.create(taskDTO)).thenReturn(taskDTO);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/tasks").contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(task)))
+                        .content(objectMapper.writeValueAsString(taskDTO)))
                 .andExpect(status().isCreated());
-
     }
 
     @Test
     void findById() throws Exception {
-
         Task task = new Task("test_task", false, true, 1);
-        when(taskService.findById(1)).thenReturn(Optional.of(task));
+        TaskDTO taskDTO = taskDTOMapper.apply(task);
+
+        when(taskService.findById(1)).thenReturn(Optional.of(taskDTO));
 
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/tasks/{id}", 1))
@@ -62,7 +72,7 @@ class TaskControllerUTest {
 
 
         String stringResult = result.getResponse().getContentAsString();
-        Task taskResult = objectMapper.readValue(stringResult, Task.class);
+        TaskDTO taskResult = objectMapper.readValue(stringResult, TaskDTO.class);
 
         Assertions.assertEquals("test_task", taskResult.getDescription());
 
@@ -71,10 +81,10 @@ class TaskControllerUTest {
     @Test
     void findAllDefault() throws Exception {
         when(taskService.findAll()).thenReturn(List.of(
-                new Task("task 1", true, false, 1),
-                new Task("task 2", true, false, 3),
-                new Task("task 3", false, true, 2),
-                new Task("task 4", false, true, 2)
+                taskDTOMapper.apply(new Task("task 1", true, false, 1)),
+                taskDTOMapper.apply(new Task("task 2", true, false, 3)),
+                taskDTOMapper.apply(new Task("task 3", false, true, 2)),
+                taskDTOMapper.apply(new Task("task 4", false, true, 2))
         ));
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/tasks"))
@@ -91,10 +101,10 @@ class TaskControllerUTest {
     @Test
     void findAllSorted() throws Exception {
         when(taskService.findByPriority()).thenReturn(List.of(
-                new Task("task 1", true, false, 1),
-                new Task("task 3", false, true, 2),
-                new Task("task 2", true, false, 3),
-                new Task("task 4", false, true, 1)
+                taskDTOMapper.apply(new Task("task 1", true, false, 1)),
+                taskDTOMapper.apply(new Task("task 3", false, true, 2)),
+                taskDTOMapper.apply(new Task("task 2", true, false, 3)),
+                taskDTOMapper.apply(new Task("task 4", false, true, 1))
         ));
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/tasks?sortBy=priority"))
@@ -110,9 +120,9 @@ class TaskControllerUTest {
     @Test
     void findAllInProgress() throws Exception {
         when(taskService.findByInProgress()).thenReturn(List.of(
-                new Task("task 3", false, true, 2),
-                new Task("task 4", false, true, 3)
-        ));
+                taskDTOMapper.apply(new Task("task 3", false, true, 2)),
+                taskDTOMapper.apply(new Task("task 4", false, true, 3)))
+        );
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/tasks?sortBy=in-progress"))
                 .andExpect(status().isOk())
@@ -127,8 +137,8 @@ class TaskControllerUTest {
     @Test
     void findAllIncomplete() throws Exception {
         when(taskService.findByIncomplete()).thenReturn(List.of(
-                new Task("task 3", false, true, 2),
-                new Task("task 4", false, true, 3)
+                taskDTOMapper.apply(new Task("task 3", false, true, 2)),
+                taskDTOMapper.apply(new Task("task 4", false, true, 3))
         ));
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/tasks?sortBy=incomplete"))

@@ -39,7 +39,19 @@ public class Task {
         this.inProgress = inProgress;
         this.priority = priority;
     }
-
+    public Task(long id, String description, boolean complete, boolean inProgress, int priority) {
+        this.id = id;
+        if (description == null || description.trim().equals("")) {
+            throw new IllegalArgumentException("Description must not be empty");
+        }
+        if (priority > 3 || priority < 0) {
+            throw new IllegalArgumentException("Priority must be between 0 and 3");
+        }
+        this.description = description;
+        this.complete = complete;
+        this.inProgress = inProgress;
+        this.priority = priority;
+    }
     public long getId() {
         return id;
     }

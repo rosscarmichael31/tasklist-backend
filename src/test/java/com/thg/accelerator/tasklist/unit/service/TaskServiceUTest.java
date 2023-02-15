@@ -1,14 +1,18 @@
 package com.thg.accelerator.tasklist.unit.service;
 
 import com.thg.accelerator.tasklist.model.Task;
+import com.thg.accelerator.tasklist.model.TaskDTO;
 import com.thg.accelerator.tasklist.respository.TaskDatabaseRepository;
+import com.thg.accelerator.tasklist.service.LabelService;
+import com.thg.accelerator.tasklist.service.TaskDTOMapper;
+import com.thg.accelerator.tasklist.service.TaskMapper;
 import com.thg.accelerator.tasklist.service.TaskService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -16,10 +20,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
-@WebMvcTest(TaskService.class)
+@SpringBootTest
 @AutoConfigureMockMvc
 class TaskServiceUTest {
     @Autowired
@@ -27,7 +31,16 @@ class TaskServiceUTest {
     @Autowired
     TaskService taskService;
     @MockBean
+    LabelService labelService;
+
+    @Autowired
+    TaskMapper taskmapper;
+
+    @Autowired
+    TaskDTOMapper taskDTOMapper = new TaskDTOMapper();
+    @MockBean
     TaskDatabaseRepository taskDatabaseRepository;
+
 
     @Test
     @DisplayName("it saves a task to the repo")
@@ -36,13 +49,15 @@ class TaskServiceUTest {
         // Given
         Task task = new Task("Test task", false, true, 1);
         when(taskDatabaseRepository.save(task)).thenReturn(task);
+        TaskDTO taskDTO = taskDTOMapper.apply(task);
 
         // When
-        Task createdTask = taskService.create(task);
+        TaskDTO createdTask = taskService.create(taskDTO);
 
         // Then
-        Assertions.assertEquals(createdTask, task);}
-
+        verify(taskDatabaseRepository, times(1)).save(task);
+        Assertions.assertEquals(taskDTO, createdTask);
+    }
 
 
     @Test
@@ -52,13 +67,14 @@ class TaskServiceUTest {
         Task task = new Task("Test task", false, true, 1);
         long taskId = 1;
         when(taskDatabaseRepository.findById(taskId)).thenReturn(Optional.of(task));
+        TaskDTO taskDTO = taskDTOMapper.apply(task);
 
         // When
-        Optional<Task> foundTask = taskService.findById(taskId);
+        Optional<TaskDTO> foundTask = taskService.findById(taskId);
 
         // Then
         Assertions.assertTrue(foundTask.isPresent());
-        Assertions.assertEquals(foundTask.get(), task);
+        Assertions.assertEquals(foundTask.get(), taskDTO);
 
 
     }
@@ -69,13 +85,17 @@ class TaskServiceUTest {
         // Given
         Task task1 = new Task("Test task 1", false, true, 1);
         Task task2 = new Task("Test task 2", false, false, 2);
+
+        TaskDTO task1DTO = taskDTOMapper.apply(task1);
+        TaskDTO task2DTO = taskDTOMapper.apply(task2);
+
         when(taskDatabaseRepository.findAll()).thenReturn(Arrays.asList(task1, task2));
 
         // When
-        List<Task> allTasks = taskService.findAll();
+        List<TaskDTO> allTasks = taskService.findAll();
 
         // Then
-        Assertions.assertArrayEquals(new Task[]{task1, task2}, allTasks.toArray());
+        Assertions.assertArrayEquals(new TaskDTO[]{ task1DTO, task2DTO}, allTasks.toArray());
     }
 
     @Test
@@ -85,13 +105,18 @@ class TaskServiceUTest {
         Task task1 = new Task("Test task 1", false, true, 1);
         Task task2 = new Task("Test task 2", false, false, 2);
         Task task3 = new Task("Test task 3", false, true, 3);
+
+        TaskDTO task1DTO = taskDTOMapper.apply(task1);
+        TaskDTO task2DTO = taskDTOMapper.apply(task2);
+        TaskDTO task3DTO = taskDTOMapper.apply(task3);
+
         when(taskDatabaseRepository.findAll()).thenReturn(Arrays.asList(task1, task2, task3));
 
         // When
-        List<Task> tasksByPriority = taskService.findByPriority();
+        List<TaskDTO> tasksByPriority = taskService.findByPriority();
 
         // Then
-        Assertions.assertArrayEquals(new Task[]{task3, task2, task1}, tasksByPriority.toArray());
+        Assertions.assertArrayEquals(new TaskDTO[]{task3DTO, task2DTO, task1DTO}, tasksByPriority.toArray());
     }
 
     @Test
@@ -101,13 +126,17 @@ class TaskServiceUTest {
         Task task1 = new Task("Test task 1", false, true, 1);
         Task task2 = new Task("Test task 2", false, false, 2);
         Task task3 = new Task("Test task 3", true, true, 3);
+
+        TaskDTO task1DTO = taskDTOMapper.apply(task1);
+        TaskDTO task3DTO = taskDTOMapper.apply(task3);
+
         when(taskDatabaseRepository.findAll()).thenReturn(Arrays.asList(task1, task2, task3));
 
         // When
-        List<Task> tasksInProgress = taskService.findByInProgress();
+        List<TaskDTO> tasksInProgress = taskService.findByInProgress();
 
         // Then
-        Assertions.assertArrayEquals(new Task[]{task1, task3}, tasksInProgress.toArray());
+        Assertions.assertArrayEquals(new TaskDTO[]{task1DTO, task3DTO}, tasksInProgress.toArray());
     }
 
     @Test
@@ -116,12 +145,16 @@ class TaskServiceUTest {
         Task task1 = new Task("Test task 1", false, true, 1);
         Task task2 = new Task("Test task 2", false, false, 2);
         Task task3 = new Task("Test task 3", true, true, 3);
+
+        TaskDTO task1DTO = taskDTOMapper.apply(task1);
+        TaskDTO task2DTO = taskDTOMapper.apply(task2);
+
         when(taskDatabaseRepository.findAll()).thenReturn(Arrays.asList(task1, task2, task3));
 
         // When
-        List<Task> incompleteTasks = taskService.findByIncomplete();
+        List<TaskDTO> incompleteTasks = taskService.findByIncomplete();
 
         // Then
-        Assertions.assertArrayEquals(new Task[]{task1, task2}, incompleteTasks.toArray());
+        Assertions.assertArrayEquals(new TaskDTO[]{task1DTO, task2DTO}, incompleteTasks.toArray());
     }
 }

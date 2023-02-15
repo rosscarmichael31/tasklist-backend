@@ -19,7 +19,13 @@ public class Label {
     @ManyToMany(mappedBy = "labels")
     private Set<Task> tasks = new HashSet<>();
 
-    public Label() {}
+    public Label() {
+    }
+
+    public Label(long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 
     public long getId() {
         return id;

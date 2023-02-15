@@ -1,20 +1,17 @@
 package com.thg.accelerator.tasklist.controller;
 
-import com.thg.accelerator.tasklist.model.Label;
-import com.thg.accelerator.tasklist.model.Task;
-import com.thg.accelerator.tasklist.model.TaskDto;
+
+import com.thg.accelerator.tasklist.model.TaskDTO;
 import com.thg.accelerator.tasklist.service.LabelService;
+import com.thg.accelerator.tasklist.service.TaskDTOMapper;
+import com.thg.accelerator.tasklist.service.TaskMapper;
 import com.thg.accelerator.tasklist.service.TaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.thg.accelerator.tasklist.controller.Query.*;
+import java.util.Optional;
 
 @RestController
 @CrossOrigin
@@ -22,69 +19,59 @@ import static com.thg.accelerator.tasklist.controller.Query.*;
 public class TaskController {
     private final TaskService taskService;
     private final LabelService labelService;
+    private final TaskDTOMapper taskDTOMapper;
+    private final TaskMapper taskMapper;
 
-    public TaskController(TaskService taskService, LabelService labelService) {
+    public TaskController(TaskService taskService, LabelService labelService, TaskDTOMapper taskDTOMapper, TaskMapper taskMapper) {
         this.taskService = taskService;
         this.labelService = labelService;
+        this.taskDTOMapper = taskDTOMapper;
+        this.taskMapper = taskMapper;
     }
 
     @PostMapping
-    public ResponseEntity<TaskDto> create(@RequestBody TaskDto taskDto) {
-        Task task = taskService.create(
-                new Task(taskDto.getDescription(), taskDto.isComplete(), taskDto.isInProgress(), taskDto.getPriority())
-        );
-        System.out.println(taskDto);
-        if (!taskDto.getLabelNames().isEmpty()) {
-            Set<Label> labels = taskDto.getLabelNames()
-                    .stream()
-                    .map(labelService::findOrCreateLabel)
-                    .collect(Collectors.toSet());
-            task.setLabels(labels);
-            taskService.update(task, task.getId());
-        }
-
-        TaskDto response = new TaskDto(task);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    public ResponseEntity<TaskDTO> create(@RequestBody TaskDTO taskDTO) {
+        taskService.create(taskDTO);
+        return new ResponseEntity<>(taskDTO, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Task> findById(@PathVariable long id) {
+    public ResponseEntity<TaskDTO> findById(@PathVariable long id) {
         return taskService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping
-    public List<Task> findAll(@RequestParam(required = false) String sortBy) {
-
-        if (Objects.equals(sortBy, PRIORITY.getLabel())) {
-            return taskService.findByPriority();
+    public List<TaskDTO> findAll(@RequestParam(required = false) String sortBy) {
+        try {
+            return switch (Query.fromString(sortBy)) {
+                case PRIORITY -> taskService.findByPriority();
+                case IN_PROGRESS -> taskService.findByInProgress();
+                case INCOMPLETE -> taskService.findByIncomplete();
+            };
+        } catch (IllegalArgumentException e) {
+            return taskService.findAll();
         }
 
-        if (Objects.equals(sortBy, IN_PROGRESS.getLabel())) {
-            return taskService.findByInProgress();
-        }
-
-        if (Objects.equals(sortBy, INCOMPLETE.getLabel())) {
-            return taskService.findByIncomplete();
-        }
-        return taskService.findAll();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Task> update(@RequestBody Task task, @PathVariable long id) {
-        return taskService.findById(id)
-                .map(savedTask -> {
-                    savedTask.setDescription(task.getDescription());
-                    savedTask.setComplete(task.isComplete());
-                    savedTask.setInProgress(task.isInProgress());
-                    savedTask.setPriority(task.getPriority());
+    public ResponseEntity<TaskDTO> update(@RequestBody TaskDTO taskDTO, @PathVariable long id) {
+        Optional<TaskDTO> optionalTask = taskService.findById(id);
+        if (optionalTask.isPresent()) {
+            TaskDTO existingTaskDTO = optionalTask.get();
+            existingTaskDTO.setDescription(taskDTO.getDescription());
+            existingTaskDTO.setComplete(taskDTO.isComplete());
+            existingTaskDTO.setInProgress(taskDTO.isInProgress());
+            existingTaskDTO.setPriority(taskDTO.getPriority());
+            existingTaskDTO.setLabelNames(taskDTO.getLabelNames());
 
-                    Task updatedTask = taskService.update(task, id);
-                    return new ResponseEntity<>(updatedTask, HttpStatus.OK);
-
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+            TaskDTO updatedTask = taskService.update(taskMapper.apply(taskDTO), id);
+            return new ResponseEntity<>(updatedTask, HttpStatus.OK);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -92,6 +79,4 @@ public class TaskController {
         taskService.delete(id);
         return new ResponseEntity<>("Task successfully deleted!", HttpStatus.OK);
     }
-
-
 }
