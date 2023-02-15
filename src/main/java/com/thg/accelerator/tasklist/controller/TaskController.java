@@ -2,10 +2,10 @@ package com.thg.accelerator.tasklist.controller;
 
 
 import com.thg.accelerator.tasklist.model.TaskDTO;
-import com.thg.accelerator.tasklist.service.LabelService;
-import com.thg.accelerator.tasklist.service.TaskDTOMapper;
 import com.thg.accelerator.tasklist.service.TaskMapper;
 import com.thg.accelerator.tasklist.service.TaskService;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,30 +13,28 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @CrossOrigin
 @RequestMapping("/tasks")
 public class TaskController {
     private final TaskService taskService;
-    private final LabelService labelService;
-    private final TaskDTOMapper taskDTOMapper;
     private final TaskMapper taskMapper;
 
-    public TaskController(TaskService taskService, LabelService labelService, TaskDTOMapper taskDTOMapper, TaskMapper taskMapper) {
+    public TaskController(TaskService taskService, TaskMapper taskMapper) {
         this.taskService = taskService;
-        this.labelService = labelService;
-        this.taskDTOMapper = taskDTOMapper;
         this.taskMapper = taskMapper;
     }
 
     @PostMapping
     public ResponseEntity<TaskDTO> create(@RequestBody TaskDTO taskDTO) {
-        taskService.create(taskDTO);
-        return new ResponseEntity<>(taskDTO, HttpStatus.CREATED);
+        log.info("POST: " + taskDTO);
+        return new ResponseEntity<>(taskService.create(taskDTO), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<TaskDTO> findById(@PathVariable long id) {
+        log.info("GET: " + id);
         return taskService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -44,6 +42,7 @@ public class TaskController {
 
     @GetMapping
     public List<TaskDTO> findAll(@RequestParam(required = false) String sortBy) {
+        log.info("GET: " + sortBy);
         try {
             return switch (Query.fromString(sortBy)) {
                 case PRIORITY -> taskService.findByPriority();
@@ -53,11 +52,11 @@ public class TaskController {
         } catch (IllegalArgumentException e) {
             return taskService.findAll();
         }
-
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<TaskDTO> update(@RequestBody TaskDTO taskDTO, @PathVariable long id) {
+        log.info("PUT: " + taskDTO );
         Optional<TaskDTO> optionalTask = taskService.findById(id);
         if (optionalTask.isPresent()) {
             TaskDTO existingTaskDTO = optionalTask.get();
@@ -76,6 +75,7 @@ public class TaskController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable long id) {
+        log.info("DELETE: " + id);
         taskService.delete(id);
         return new ResponseEntity<>("Task successfully deleted!", HttpStatus.OK);
     }

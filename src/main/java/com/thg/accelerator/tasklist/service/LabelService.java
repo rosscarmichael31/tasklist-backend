@@ -30,6 +30,7 @@ public class LabelService implements LabelServiceInterface {
         Optional<Label> optionalLabel = labelDatabaseRepository.findByName(name);
         if (optionalLabel.isPresent()) {
             return optionalLabel.get();
+
         } else {
             Label newLabel = new Label();
             newLabel.setName(name);

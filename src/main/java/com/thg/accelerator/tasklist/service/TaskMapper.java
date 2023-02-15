@@ -20,7 +20,7 @@ public class TaskMapper implements Function<TaskDTO, Task> {
     @Override
     public Task apply(TaskDTO taskDTO) {
         Task task = new Task(
-                taskDTO.getId(),
+//                taskDTO.getId(),
                 taskDTO.getDescription(),
                 taskDTO.isComplete(),
                 taskDTO.isInProgress(),

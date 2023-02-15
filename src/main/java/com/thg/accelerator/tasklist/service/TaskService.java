@@ -3,6 +3,7 @@ package com.thg.accelerator.tasklist.service;
 import com.thg.accelerator.tasklist.model.Task;
 import com.thg.accelerator.tasklist.model.TaskDTO;
 import com.thg.accelerator.tasklist.respository.TaskDatabaseRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -11,6 +12,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+@Slf4j
 @Service
 public class TaskService implements TaskServiceInterface {
 
@@ -27,8 +29,8 @@ public class TaskService implements TaskServiceInterface {
 
     @Override
     public TaskDTO create(TaskDTO taskDTO) {
-        return taskDTOMapper.apply(
-                taskDatabaseRepository.save(taskMapper.apply(taskDTO)));
+        Task task = taskDatabaseRepository.save(taskMapper.apply(taskDTO));
+        return taskDTOMapper.apply(task);
     }
 
     @Override
