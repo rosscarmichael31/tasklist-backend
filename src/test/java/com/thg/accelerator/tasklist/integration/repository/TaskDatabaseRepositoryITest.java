@@ -3,6 +3,7 @@ package com.thg.accelerator.tasklist.integration.repository;
 import com.thg.accelerator.tasklist.model.Task;
 import com.thg.accelerator.tasklist.respository.TaskDatabaseRepository;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -20,7 +21,8 @@ public class TaskDatabaseRepositoryITest {
     private TaskDatabaseRepository taskDatabaseRepository;
 
     @Test
-    public void whenFindByName_thenReturnEmployee() {
+    @DisplayName("it adds to database and returns the same object")
+    public void databasePersistence() {
         // given
         Task task = new Task("test_task", false, false, 1);
         entityManager.persist(task);

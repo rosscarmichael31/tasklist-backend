@@ -11,10 +11,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
 import java.util.List;
@@ -22,14 +20,11 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
-
 @SpringBootTest
-@AutoConfigureMockMvc
 class TaskServiceUTest {
     @Autowired
-    MockMvc mockMvc;
-    @Autowired
     TaskService taskService;
+
     @MockBean
     LabelService labelService;
 
@@ -73,10 +68,9 @@ class TaskServiceUTest {
         Optional<TaskDTO> foundTask = taskService.findById(taskId);
 
         // Then
+        verify(taskDatabaseRepository, times(1)).findById(taskId);
         Assertions.assertTrue(foundTask.isPresent());
         Assertions.assertEquals(foundTask.get(), taskDTO);
-
-
     }
 
     @Test
@@ -140,6 +134,7 @@ class TaskServiceUTest {
     }
 
     @Test
+    @DisplayName("it finds all tasks by incomplete")
     void findByIncomplete() {
         // Given
         Task task1 = new Task("Test task 1", false, true, 1);

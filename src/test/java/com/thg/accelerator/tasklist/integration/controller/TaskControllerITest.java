@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thg.accelerator.tasklist.model.Task;
 import com.thg.accelerator.tasklist.respository.TaskDatabaseRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -40,6 +41,7 @@ public class TaskControllerITest {
     }
 
     @Test
+    @DisplayName("it posts")
     public void testPostTask() throws Exception {
         // given
         Task task = new Task("test_task", false, false, 1);
@@ -63,6 +65,7 @@ public class TaskControllerITest {
     }
 
     @Test
+    @DisplayName("it finds all")
     public void testGetAllTasks() throws Exception {
         // given
         List<Task> listOfEmployees = new ArrayList<>();
@@ -84,6 +87,7 @@ public class TaskControllerITest {
     }
 
     @Test
+    @DisplayName("it finds by id when exists")
     public void testGetTaskByIdPositive() throws Exception {
         // given
         Task task = new Task("test_task", false, false, 1);
@@ -102,6 +106,7 @@ public class TaskControllerITest {
     }
 
     @Test
+    @DisplayName("it sends 404 when not found")
     public void testGetTaskByIdNegative() throws Exception {
         // given
         long id = 2;
@@ -118,6 +123,7 @@ public class TaskControllerITest {
     }
 
     @Test
+    @DisplayName("it updates a tasks when it exists")
     public void testUpdateTaskPositive() throws Exception {
         // given
         Task savedTask = new Task("test_task", false, false, 1);
@@ -140,6 +146,7 @@ public class TaskControllerITest {
     }
 
     @Test
+    @DisplayName("it sends 404 when not found")
     public void testUpdateTaskNegative() throws Exception {
         // given
         long id = 53L;
@@ -162,6 +169,7 @@ public class TaskControllerITest {
 
 
     @Test
+    @DisplayName("it deleted a task")
     public void testDeleteTask() throws Exception {
         // given
         Task task = new Task("test_task", false, false, 1);

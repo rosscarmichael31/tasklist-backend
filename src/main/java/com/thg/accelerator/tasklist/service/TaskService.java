@@ -17,14 +17,12 @@ public class TaskService implements TaskServiceInterface {
     private final TaskDatabaseRepository taskDatabaseRepository;
     private final TaskDTOMapper taskDTOMapper;
     private final TaskMapper taskMapper;
-    private final LabelService labelService; // TODO: Remove
 
 
-    public TaskService(TaskDatabaseRepository taskDatabaseRepository, TaskDTOMapper taskDTOMapper, TaskMapper taskMapper, LabelService labelService) {
+    public TaskService(TaskDatabaseRepository taskDatabaseRepository, TaskDTOMapper taskDTOMapper, TaskMapper taskMapper) {
         this.taskDatabaseRepository = taskDatabaseRepository;
         this.taskDTOMapper = taskDTOMapper;
         this.taskMapper = taskMapper;
-        this.labelService = labelService;
     }
 
     @Override

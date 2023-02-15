@@ -10,6 +10,7 @@ import com.thg.accelerator.tasklist.service.TaskDTOMapper;
 import com.thg.accelerator.tasklist.service.TaskMapper;
 import com.thg.accelerator.tasklist.service.TaskService;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -47,6 +48,7 @@ class TaskControllerUTest {
 
 
     @Test
+    @DisplayName("it creates")
     void create() throws Exception {
         Task task = new Task("test_task", true, true, 1);
         TaskDTO taskDTO = taskDTOMapper.apply(task);
@@ -59,6 +61,7 @@ class TaskControllerUTest {
     }
 
     @Test
+    @DisplayName("it finds by id")
     void findById() throws Exception {
         Task task = new Task("test_task", false, true, 1);
         TaskDTO taskDTO = taskDTOMapper.apply(task);
@@ -79,6 +82,7 @@ class TaskControllerUTest {
     }
 
     @Test
+    @DisplayName("it finds all")
     void findAllDefault() throws Exception {
         when(taskService.findAll()).thenReturn(List.of(
                 taskDTOMapper.apply(new Task("task 1", true, false, 1)),
@@ -99,7 +103,8 @@ class TaskControllerUTest {
     }
 
     @Test
-    void findAllSorted() throws Exception {
+    @DisplayName("it finds by priority")
+    void findAllSortByPriority() throws Exception {
         when(taskService.findByPriority()).thenReturn(List.of(
                 taskDTOMapper.apply(new Task("task 1", true, false, 1)),
                 taskDTOMapper.apply(new Task("task 3", false, true, 2)),
@@ -118,6 +123,7 @@ class TaskControllerUTest {
     }
 
     @Test
+    @DisplayName("it finds all in progress")
     void findAllInProgress() throws Exception {
         when(taskService.findByInProgress()).thenReturn(List.of(
                 taskDTOMapper.apply(new Task("task 3", false, true, 2)),
@@ -135,6 +141,7 @@ class TaskControllerUTest {
     }
 
     @Test
+    @DisplayName("it finds all incomplete")
     void findAllIncomplete() throws Exception {
         when(taskService.findByIncomplete()).thenReturn(List.of(
                 taskDTOMapper.apply(new Task("task 3", false, true, 2)),
