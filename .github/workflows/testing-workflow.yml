@@ -19,5 +19,8 @@ jobs:
           java-version: '17'
           distribution: 'corretto'
 
-      - name: Build and test with Gradle
-        run: ./gradlew clean build test
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Test
+        run: ./gradlew test
