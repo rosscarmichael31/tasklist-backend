@@ -53,18 +53,39 @@ public class TaskController {
 
     // TODO: Change to delete update
     @PutMapping("/{id}")
+    public ResponseEntity<TaskDTO> update(@RequestBody TaskDTO taskDTO, @PathVariable long id) {
+        Optional<TaskDTO> optionalTask = taskService.findById(id);
+        if (optionalTask.isPresent()) {
+            TaskDTO existingTaskDTO = optionalTask.get();
+            existingTaskDTO.setDescription(taskDTO.getDescription());
+            existingTaskDTO.setComplete(taskDTO.isComplete());
+            existingTaskDTO.setInProgress(taskDTO.isInProgress());
+            existingTaskDTO.setPriority(taskDTO.getPriority());
+            existingTaskDTO.setLabelNames(taskDTO.getLabelNames());
+
+            TaskDTO updatedTask = taskService.update(taskMapper.apply(taskDTO), id);
+            return new ResponseEntity<>(updatedTask, HttpStatus.OK);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     public ResponseEntity<Task> update(@RequestBody Task task, @PathVariable long id) {
-        log.info("PUT: " + task );
+        log.info("PUT: " + task);
         Optional<Task> optionalTask = taskService.findById(id);
         if (optionalTask.isPresent()) {
-            Task existingTaskDTO = optionalTask.get();
-            existingTaskDTO.setDescription(task.getDescription());
-            existingTaskDTO.setComplete(task.isComplete());
-            existingTaskDTO.setInProgress(task.isInProgress());
-            existingTaskDTO.setPriority(task.getPriority());
-            existingTaskDTO.setLabels(task.getLabels());
+            Task updatedTask = new Task(
+                    id,
+                    task.getDescription(),
+                    task.isComplete(),
+                    task.isInProgress(),
+                    task.getPriority(),
+                    task.getLabels()
+            );
 
-            Task updatedTask = taskService.update(task, id);
+            taskService.delete(id);
+            taskService.create(updatedTask);
+
             return new ResponseEntity<>(updatedTask, HttpStatus.OK);
         } else {
             return ResponseEntity.notFound().build();
