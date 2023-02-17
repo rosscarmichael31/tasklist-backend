@@ -16,15 +16,16 @@ public class Label {
     @Id
     @GeneratedValue(generator = "increment")
     @GenericGenerator(name = "increment", strategy = "increment")
-    private long id;
+    private Long id;
     private String name;
 
-    @ManyToMany(mappedBy = "labels")
-    private Set<Task> tasks = new HashSet<>();
+    @ManyToMany(mappedBy = "labels", fetch = FetchType.EAGER)
+    private Set<Task> tasks;
 
     public Label(String name) {
         this.name = name;
     }
+
     public Label(long id, String name) {
         this.id = id;
         this.name = name;

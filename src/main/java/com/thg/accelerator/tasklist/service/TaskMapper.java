@@ -20,17 +20,13 @@ public class TaskMapper implements Function<TaskDTO, Task> {
     @Override
     public Task apply(TaskDTO taskDTO) {
         Task task = new Task(
-//                taskDTO.getId(),
                 taskDTO.getDescription(),
                 taskDTO.isComplete(),
                 taskDTO.isInProgress(),
-                taskDTO.getPriority()
+                taskDTO.getPriority(),
+                taskDTO.getLabels()
         );
-        Set<Label> labels = taskDTO.getLabelNames().stream()
-                .map(labelService::findOrCreateLabel)
-                .collect(Collectors.toSet());
 
-        task.setLabels(labels);
 
         return task;
     }

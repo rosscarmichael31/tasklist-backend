@@ -2,6 +2,7 @@ package com.thg.accelerator.tasklist.controller;
 
 
 import com.thg.accelerator.tasklist.model.TaskDTO;
+import com.thg.accelerator.tasklist.service.LabelService;
 import com.thg.accelerator.tasklist.service.TaskMapper;
 import com.thg.accelerator.tasklist.service.TaskService;
 
@@ -19,10 +20,12 @@ import java.util.Optional;
 @RequestMapping("/tasks")
 public class TaskController {
     private final TaskService taskService;
+    private final LabelService labelService;
     private final TaskMapper taskMapper;
 
-    public TaskController(TaskService taskService, TaskMapper taskMapper) {
+    public TaskController(TaskService taskService, LabelService labelService, TaskMapper taskMapper) {
         this.taskService = taskService;
+        this.labelService = labelService;
         this.taskMapper = taskMapper;
     }
 
@@ -64,7 +67,7 @@ public class TaskController {
             existingTaskDTO.setComplete(taskDTO.isComplete());
             existingTaskDTO.setInProgress(taskDTO.isInProgress());
             existingTaskDTO.setPriority(taskDTO.getPriority());
-            existingTaskDTO.setLabelNames(taskDTO.getLabelNames());
+            existingTaskDTO.setLabels(taskDTO.getLabels());
 
             TaskDTO updatedTask = taskService.update(taskMapper.apply(taskDTO), id);
             return new ResponseEntity<>(updatedTask, HttpStatus.OK);

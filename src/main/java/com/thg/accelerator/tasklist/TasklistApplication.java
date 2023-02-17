@@ -3,7 +3,6 @@ package com.thg.accelerator.tasklist;
 import com.thg.accelerator.tasklist.model.Task;
 import com.thg.accelerator.tasklist.respository.TaskDatabaseRepository;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -25,11 +24,11 @@ public class TasklistApplication implements CommandLineRunner {
     @Override
     public void run(String... args) {
         log.info("reading data");
-        for (Task task : taskDatabaseRepository.findAll()) {
-            log.info("ID: {}     Description: {}     Complete: {}    In progress: {}     Priority: {}",
-                    task.getId(), task.getDescription(), task.isComplete(), task.isInProgress(), task.getPriority());
-
-        }
+//        for (Task task : taskDatabaseRepository.findAll()) {
+//            log.info("ID: {}     Description: {}     Complete: {}    In progress: {}     Priority: {} ",
+//                    task.getId(), task.getDescription(), task.isComplete(), task.isInProgress(), task.getPriority());
+//
+//        }
     }
 
 }

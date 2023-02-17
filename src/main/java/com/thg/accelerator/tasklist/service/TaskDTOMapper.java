@@ -18,9 +18,6 @@ public class TaskDTOMapper implements Function<Task, TaskDTO> {
                 task.isComplete(),
                 task.isInProgress(),
                 task.getPriority(),
-                task.getLabels()
-                        .stream()
-                        .map(Label::getName)
-                        .collect(Collectors.toList()));
+                task.getLabels());
     }
 }

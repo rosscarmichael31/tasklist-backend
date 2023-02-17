@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -16,5 +16,5 @@ public class TaskDTO {
     private boolean complete;
     private boolean inProgress;
     private int priority;
-    private List<String> labelNames = new ArrayList<>();
+    private Set<Label> labels;
 }

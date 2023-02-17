@@ -1,7 +1,9 @@
 package com.thg.accelerator.tasklist.service;
 
+import com.thg.accelerator.tasklist.model.Label;
 import com.thg.accelerator.tasklist.model.Task;
 import com.thg.accelerator.tasklist.model.TaskDTO;
+import com.thg.accelerator.tasklist.respository.LabelDatabaseRepository;
 import com.thg.accelerator.tasklist.respository.TaskDatabaseRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,12 +19,14 @@ import java.util.stream.StreamSupport;
 public class TaskService implements TaskServiceInterface {
 
     private final TaskDatabaseRepository taskDatabaseRepository;
+    private final LabelDatabaseRepository labelDatabaseRepository;
     private final TaskDTOMapper taskDTOMapper;
     private final TaskMapper taskMapper;
 
 
-    public TaskService(TaskDatabaseRepository taskDatabaseRepository, TaskDTOMapper taskDTOMapper, TaskMapper taskMapper) {
+    public TaskService(TaskDatabaseRepository taskDatabaseRepository, LabelDatabaseRepository labelDatabaseRepository, TaskDTOMapper taskDTOMapper, TaskMapper taskMapper) {
         this.taskDatabaseRepository = taskDatabaseRepository;
+        this.labelDatabaseRepository = labelDatabaseRepository;
         this.taskDTOMapper = taskDTOMapper;
         this.taskMapper = taskMapper;
     }
@@ -43,7 +47,11 @@ public class TaskService implements TaskServiceInterface {
 
     @Override
     public List<TaskDTO> findAll() {
-        List<Task> tasks = (List<Task>) taskDatabaseRepository.findAll();
+        List<Task> tasks = taskDatabaseRepository.findAll();
+        log.info("SERVICE.findall(): {}", tasks);
+        List<Label> labels = labelDatabaseRepository.findAll();
+        log.info("SERVICE.labelRepo.findAll(): {}", labels);
+//        log.info("DTOMapper: {}", taskDTOMapper.apply(tasks));
         return tasks
                 .stream()
                 .map(taskDTOMapper)
