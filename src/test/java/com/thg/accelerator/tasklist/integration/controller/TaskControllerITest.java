@@ -1,6 +1,7 @@
 package com.thg.accelerator.tasklist.integration.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.thg.accelerator.tasklist.model.Label;
 import com.thg.accelerator.tasklist.model.Task;
 import com.thg.accelerator.tasklist.respository.TaskDatabaseRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,9 +15,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -44,7 +49,11 @@ public class TaskControllerITest {
     @DisplayName("it posts")
     public void testPostTask() throws Exception {
         // given
-        Task task = new Task("test_task", false, false, 1);
+        Set<Label> labels = new HashSet<>();
+        labels.add(new Label("test_label1"));
+        labels.add(new Label("test_label2"));
+
+        Task task = new Task("test_task", false, false, 1, labels);
 
         // when
         ResultActions response = mockMvc.perform(post("/tasks")
@@ -61,20 +70,20 @@ public class TaskControllerITest {
                 .andExpect(jsonPath("$.inProgress",
                         is(task.isInProgress())))
                 .andExpect(jsonPath("$.priority",
-                        is(task.getPriority())));
+                        is(task.getPriority())))
+                .andExpect(jsonPath("$.labels[*].name", containsInAnyOrder("test_label1", "test_label2")));
+
     }
 
     @Test
     @DisplayName("it finds all")
     public void testGetAllTasks() throws Exception {
         // given
-        List<Task> listOfEmployees = new ArrayList<>();
+        List<Task> tasks = new ArrayList<>();
+        tasks.add(new Task("test_task1", false, false, 1));
+        tasks.add(new Task("test_task2", true, true, 2));
 
-        listOfEmployees.add(new Task("test_task1", false, false, 1));
-
-        listOfEmployees.add(new Task("test_task2", true, true, 2));
-
-        taskDatabaseRepository.saveAll(listOfEmployees);
+        taskDatabaseRepository.saveAll(tasks);
 
         // when
         ResultActions response = mockMvc.perform(get("/tasks"));
@@ -83,14 +92,17 @@ public class TaskControllerITest {
         response.andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(jsonPath("$.size()",
-                        is(listOfEmployees.size())));
+                        is(tasks.size())));
     }
 
     @Test
     @DisplayName("it finds by id when exists")
     public void testGetTaskByIdPositive() throws Exception {
         // given
-        Task task = new Task("test_task", false, false, 1);
+        Set<Label> labels = new HashSet<>();
+        labels.add(new Label("test_label1"));
+        labels.add(new Label("test_label2"));
+        Task task = new Task("test_task", false, false, 1, labels);
         taskDatabaseRepository.save(task);
 
         // when
@@ -109,8 +121,12 @@ public class TaskControllerITest {
     @DisplayName("it sends 404 when not found")
     public void testGetTaskByIdNegative() throws Exception {
         // given
+        Set<Label> labels = new HashSet<>();
+        labels.add(new Label("test_label1"));
+        labels.add(new Label("test_label2"));
+
         long id = 2;
-        Task task = new Task("test_task", false, false, 1);
+        Task task = new Task("test_task", false, false, 1, labels);
 
         taskDatabaseRepository.save(task);
 

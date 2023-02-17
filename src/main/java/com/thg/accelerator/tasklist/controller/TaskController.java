@@ -3,7 +3,6 @@ package com.thg.accelerator.tasklist.controller;
 
 import com.thg.accelerator.tasklist.model.Task;
 import com.thg.accelerator.tasklist.service.TaskService;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,18 +22,45 @@ public class TaskController {
         this.taskService = taskService;
     }
 
+    //    @PostMapping
+//    public ResponseEntity<Task> create(@RequestBody Task task) {
+//        log.info("POST: " + task);
+//        return new ResponseEntity<>(taskService.create(task), HttpStatus.CREATED);
+//    }
     @PostMapping
     public ResponseEntity<Task> create(@RequestBody Task task) {
-        log.info("POST: " + task);
-        return new ResponseEntity<>(taskService.create(task), HttpStatus.CREATED);
+        try {
+            log.info("POST: " + task);
+            Task createdTask = taskService.create(task);
+            return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
+        } catch (Exception e) {
+            log.error("Error creating task: " + e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
+    //    @GetMapping("/{id}")
+//    public ResponseEntity<Task> findById(@PathVariable long id) {
+//        log.info("GET: " + id);
+//        return taskService.findById(id)
+//                .map(ResponseEntity::ok)
+//                .orElseGet(() -> ResponseEntity.notFound().build());
+//    }
     @GetMapping("/{id}")
     public ResponseEntity<Task> findById(@PathVariable long id) {
         log.info("GET: " + id);
-        return taskService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+
+        try {
+            Optional<Task> optionalTask = taskService.findById(id);
+            if (optionalTask.isPresent()) {
+                return ResponseEntity.ok(optionalTask.get());
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            log.error("An error occurred while fetching task with id " + id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping
@@ -51,51 +77,46 @@ public class TaskController {
         }
     }
 
-    // TODO: Change to delete update
     @PutMapping("/{id}")
-    public ResponseEntity<TaskDTO> update(@RequestBody TaskDTO taskDTO, @PathVariable long id) {
-        Optional<TaskDTO> optionalTask = taskService.findById(id);
-        if (optionalTask.isPresent()) {
-            TaskDTO existingTaskDTO = optionalTask.get();
-            existingTaskDTO.setDescription(taskDTO.getDescription());
-            existingTaskDTO.setComplete(taskDTO.isComplete());
-            existingTaskDTO.setInProgress(taskDTO.isInProgress());
-            existingTaskDTO.setPriority(taskDTO.getPriority());
-            existingTaskDTO.setLabelNames(taskDTO.getLabelNames());
-
-            TaskDTO updatedTask = taskService.update(taskMapper.apply(taskDTO), id);
-            return new ResponseEntity<>(updatedTask, HttpStatus.OK);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    public ResponseEntity<Task> update(@RequestBody Task task, @PathVariable long id) {
+    public ResponseEntity<?> update(@RequestBody Task task, @PathVariable long id) {
         log.info("PUT: " + task);
-        Optional<Task> optionalTask = taskService.findById(id);
-        if (optionalTask.isPresent()) {
-            Task updatedTask = new Task(
-                    id,
-                    task.getDescription(),
-                    task.isComplete(),
-                    task.isInProgress(),
-                    task.getPriority(),
-                    task.getLabels()
-            );
+        try {
+            Optional<Task> optionalTask = taskService.findById(id);
+            if (optionalTask.isPresent()) {
+                Task updatedTask = new Task(
+                        id,
+                        task.getDescription(),
+                        task.isComplete(),
+                        task.isInProgress(),
+                        task.getPriority(),
+                        task.getLabels()
+                );
 
-            taskService.delete(id);
-            taskService.create(updatedTask);
+                taskService.delete(id);
+                taskService.create(updatedTask);
 
-            return new ResponseEntity<>(updatedTask, HttpStatus.OK);
-        } else {
-            return ResponseEntity.notFound().build();
+                return new ResponseEntity<>(updatedTask, HttpStatus.OK);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable long id) {
         log.info("DELETE: " + id);
-        taskService.delete(id);
-        return new ResponseEntity<>("Task successfully deleted!", HttpStatus.OK);
+        try {
+            taskService.delete(id);
+            return new ResponseEntity<>("Task successfully deleted!", HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+        catch (Exception e) {
+            return new ResponseEntity<>("Task could not be deleted", HttpStatus.INTERNAL_SERVER_ERROR);
+
+        }
     }
 }
