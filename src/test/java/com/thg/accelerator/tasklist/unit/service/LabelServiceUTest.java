@@ -71,7 +71,7 @@ class LabelServiceUTest {
     }
 
     @Test
-    @DisplayName("it creates a label when not presesnt")
+    @DisplayName("it creates a label when not present")
     void findOrCreateLabelCreate() {
         // Given
         String testName = "test_label";

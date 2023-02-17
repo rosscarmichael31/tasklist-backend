@@ -2,6 +2,7 @@ package com.thg.accelerator.tasklist.controller;
 
 
 import com.thg.accelerator.tasklist.model.Task;
+import com.thg.accelerator.tasklist.service.LabelService;
 import com.thg.accelerator.tasklist.service.TaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -17,16 +18,13 @@ import java.util.Optional;
 @RequestMapping("/tasks")
 public class TaskController {
     private final TaskService taskService;
+    private final LabelService labelService;
 
-    public TaskController(TaskService taskService) {
+    public TaskController(TaskService taskService, LabelService labelService) {
         this.taskService = taskService;
+        this.labelService = labelService;
     }
 
-    //    @PostMapping
-//    public ResponseEntity<Task> create(@RequestBody Task task) {
-//        log.info("POST: " + task);
-//        return new ResponseEntity<>(taskService.create(task), HttpStatus.CREATED);
-//    }
     @PostMapping
     public ResponseEntity<Task> create(@RequestBody Task task) {
         try {
@@ -39,24 +37,13 @@ public class TaskController {
         }
     }
 
-    //    @GetMapping("/{id}")
-//    public ResponseEntity<Task> findById(@PathVariable long id) {
-//        log.info("GET: " + id);
-//        return taskService.findById(id)
-//                .map(ResponseEntity::ok)
-//                .orElseGet(() -> ResponseEntity.notFound().build());
-//    }
     @GetMapping("/{id}")
     public ResponseEntity<Task> findById(@PathVariable long id) {
         log.info("GET: " + id);
 
         try {
             Optional<Task> optionalTask = taskService.findById(id);
-            if (optionalTask.isPresent()) {
-                return ResponseEntity.ok(optionalTask.get());
-            } else {
-                return ResponseEntity.notFound().build();
-            }
+            return optionalTask.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
         } catch (Exception e) {
             log.error("An error occurred while fetching task with id " + id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -104,17 +91,22 @@ public class TaskController {
         }
     }
 
-
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable long id) {
         log.info("DELETE: " + id);
         try {
+            Optional<Task> task = taskService.findById(id);
+            if(task.isPresent()) {
+                task.get().getLabels().forEach(label -> labelService.delete(label.getId()));
+            } else {
+                throw new IllegalArgumentException("Task could not be found");
+            }
             taskService.delete(id);
+
             return new ResponseEntity<>("Task successfully deleted!", HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return new ResponseEntity<>("Task could not be deleted", HttpStatus.INTERNAL_SERVER_ERROR);
 
         }
