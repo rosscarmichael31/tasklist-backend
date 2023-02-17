@@ -1,6 +1,7 @@
 package com.thg.accelerator.tasklist.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
@@ -10,6 +11,7 @@ import java.util.Set;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "TASKS")
 public class Task {
@@ -21,13 +23,13 @@ public class Task {
     private boolean complete;
     private boolean inProgress;
     private int priority;
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "TASK_LABELS",
             joinColumns = @JoinColumn(name = "task_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "label_id", referencedColumnName = "id")
     )
-    private Set<Label> labels;
+    private Set<Label> labels = new HashSet<>();
 
     public Task(String description, boolean complete, boolean inProgress, int priority) {
         if (description == null || description.trim().equals("")) {

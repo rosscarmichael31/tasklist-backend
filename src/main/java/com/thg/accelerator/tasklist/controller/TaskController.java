@@ -1,9 +1,7 @@
 package com.thg.accelerator.tasklist.controller;
 
 
-import com.thg.accelerator.tasklist.model.TaskDTO;
-import com.thg.accelerator.tasklist.service.LabelService;
-import com.thg.accelerator.tasklist.service.TaskMapper;
+import com.thg.accelerator.tasklist.model.Task;
 import com.thg.accelerator.tasklist.service.TaskService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -20,23 +18,19 @@ import java.util.Optional;
 @RequestMapping("/tasks")
 public class TaskController {
     private final TaskService taskService;
-    private final LabelService labelService;
-    private final TaskMapper taskMapper;
 
-    public TaskController(TaskService taskService, LabelService labelService, TaskMapper taskMapper) {
+    public TaskController(TaskService taskService) {
         this.taskService = taskService;
-        this.labelService = labelService;
-        this.taskMapper = taskMapper;
     }
 
     @PostMapping
-    public ResponseEntity<TaskDTO> create(@RequestBody TaskDTO taskDTO) {
-        log.info("POST: " + taskDTO);
-        return new ResponseEntity<>(taskService.create(taskDTO), HttpStatus.CREATED);
+    public ResponseEntity<Task> create(@RequestBody Task task) {
+        log.info("POST: " + task);
+        return new ResponseEntity<>(taskService.create(task), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TaskDTO> findById(@PathVariable long id) {
+    public ResponseEntity<Task> findById(@PathVariable long id) {
         log.info("GET: " + id);
         return taskService.findById(id)
                 .map(ResponseEntity::ok)
@@ -44,7 +38,7 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<TaskDTO> findAll(@RequestParam(required = false) String sortBy) {
+    public List<Task> findAll(@RequestParam(required = false) String sortBy) {
         log.info("GET: " + sortBy);
         try {
             return switch (Query.fromString(sortBy)) {
@@ -57,19 +51,20 @@ public class TaskController {
         }
     }
 
+    // TODO: Change to delete update
     @PutMapping("/{id}")
-    public ResponseEntity<TaskDTO> update(@RequestBody TaskDTO taskDTO, @PathVariable long id) {
-        log.info("PUT: " + taskDTO );
-        Optional<TaskDTO> optionalTask = taskService.findById(id);
+    public ResponseEntity<Task> update(@RequestBody Task task, @PathVariable long id) {
+        log.info("PUT: " + task );
+        Optional<Task> optionalTask = taskService.findById(id);
         if (optionalTask.isPresent()) {
-            TaskDTO existingTaskDTO = optionalTask.get();
-            existingTaskDTO.setDescription(taskDTO.getDescription());
-            existingTaskDTO.setComplete(taskDTO.isComplete());
-            existingTaskDTO.setInProgress(taskDTO.isInProgress());
-            existingTaskDTO.setPriority(taskDTO.getPriority());
-            existingTaskDTO.setLabels(taskDTO.getLabels());
+            Task existingTaskDTO = optionalTask.get();
+            existingTaskDTO.setDescription(task.getDescription());
+            existingTaskDTO.setComplete(task.isComplete());
+            existingTaskDTO.setInProgress(task.isInProgress());
+            existingTaskDTO.setPriority(task.getPriority());
+            existingTaskDTO.setLabels(task.getLabels());
 
-            TaskDTO updatedTask = taskService.update(taskMapper.apply(taskDTO), id);
+            Task updatedTask = taskService.update(task, id);
             return new ResponseEntity<>(updatedTask, HttpStatus.OK);
         } else {
             return ResponseEntity.notFound().build();

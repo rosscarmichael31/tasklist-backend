@@ -1,7 +1,6 @@
 package com.thg.accelerator.tasklist.service;
 
 import com.thg.accelerator.tasklist.model.Task;
-import com.thg.accelerator.tasklist.model.TaskDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -9,13 +8,13 @@ import java.util.Optional;
 
 @Component
 public interface TaskServiceInterface {
-    TaskDTO create(TaskDTO taskDTO);
-    Optional<TaskDTO> findById(long id);
-    List<TaskDTO> findAll();
-    List<TaskDTO> findByPriority();
-    List<TaskDTO> findByInProgress();
-    List<TaskDTO> findByIncomplete();
-    TaskDTO update(Task task, long id);
+    Task create(Task taskDTO);
+    Optional<Task> findById(long id);
+    List<Task> findAll();
+    List<Task> findByPriority();
+    List<Task> findByInProgress();
+    List<Task> findByIncomplete();
+    Task update(Task task, long id);
     void delete(long id);
 
 }
