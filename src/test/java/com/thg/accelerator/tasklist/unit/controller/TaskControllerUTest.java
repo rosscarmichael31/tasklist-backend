@@ -48,13 +48,29 @@ class TaskControllerUTest {
         labels.add(new Label("test_label1"));
         labels.add(new Label("test_label2"));
 
-        Task task = new Task("test_task", true, true, 1, labels) ;
+        Task task = new Task("test_task", true, true, 1, labels);
 
         when(taskService.create(task)).thenReturn(task);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/tasks").contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(task)))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    @DisplayName("it returns internal server error")
+    void createException() throws Exception {
+        Set<Label> labels = new HashSet<>();
+        labels.add(new Label("test_label1"));
+        labels.add(new Label("test_label2"));
+
+        Task task = new Task("test_task", true, true, 1, labels);
+
+        when(taskService.create(task)).thenThrow(new RuntimeException("Internal server error"));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/tasks").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(task)))
+                .andExpect(status().isInternalServerError());
     }
 
     @Test
@@ -79,6 +95,14 @@ class TaskControllerUTest {
 
         Assertions.assertEquals("test_task", taskResult.getDescription());
 
+    }
+
+    @Test
+    @DisplayName("it returns internal server error")
+    void findByIdException() throws Exception {
+        when(taskService.findById(1)).thenThrow(new RuntimeException("Internal server error"));
+        mockMvc.perform(MockMvcRequestBuilders.get("/tasks/{id}", 1))
+                .andExpect(status().isInternalServerError());
     }
 
     @Test
@@ -172,6 +196,48 @@ class TaskControllerUTest {
         List listResult = objectMapper.readValue(stringResult, List.class);
 
         Assertions.assertEquals(2, listResult.size());
+    }
+
+    @Test
+    @DisplayName("it returns all tasks if sort param is illegal")
+    void findAllIllegalArgumentException() throws Exception {
+        Set<Label> labels = new HashSet<>();
+        labels.add(new Label("test_label1"));
+        labels.add(new Label("test_label2"));
+
+        when(taskService.findAll()).thenReturn(List.of(
+                new Task("task 1", true, false, 1, labels),
+                new Task("task 2", true, false, 3, labels),
+                new Task("task 3", false, true, 2, labels),
+                new Task("task 4", false, true, 2, labels)
+        ));
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/tasks?sortBy=INVALID"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String stringResult = result.getResponse().getContentAsString();
+        List listResult = objectMapper.readValue(stringResult, List.class);
+
+        Assertions.assertEquals(4, listResult.size());
+    }
+
+    @Test
+    @DisplayName("it returns internal server error")
+    void findAllException() throws Exception {
+        when(taskService.findByPriority()).thenThrow(new RuntimeException("Internal server error"));
+        when(taskService.findByInProgress()).thenThrow(new RuntimeException("Internal server error"));
+        when(taskService.findByIncomplete()).thenThrow(new RuntimeException("Internal server error"));
+        when(taskService.findAll()).thenThrow(new RuntimeException("Internal server error"));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/tasks?sortBy=priority", 1))
+                .andExpect(status().isInternalServerError());
+        mockMvc.perform(MockMvcRequestBuilders.get("/tasks?sortBy=in-progress", 1))
+                .andExpect(status().isInternalServerError());
+        mockMvc.perform(MockMvcRequestBuilders.get("/tasks?sortBy=incomplete", 1))
+                .andExpect(status().isInternalServerError());
+        mockMvc.perform(MockMvcRequestBuilders.get("/tasks?sortBy=INVALID", 1))
+                .andExpect(status().isInternalServerError());
     }
 
 

@@ -3,7 +3,9 @@ package com.thg.accelerator.tasklist.integration.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thg.accelerator.tasklist.model.Label;
 import com.thg.accelerator.tasklist.model.Task;
+import com.thg.accelerator.tasklist.respository.LabelDatabaseRepository;
 import com.thg.accelerator.tasklist.respository.TaskDatabaseRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,7 +20,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -35,6 +36,9 @@ public class TaskControllerITest {
 
     @Autowired
     private TaskDatabaseRepository taskDatabaseRepository;
+
+    @Autowired
+    private LabelDatabaseRepository labelDatabaseRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -55,6 +59,7 @@ public class TaskControllerITest {
 
         Task task = new Task("test_task", false, false, 1, labels);
 
+
         // when
         ResultActions response = mockMvc.perform(post("/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -72,7 +77,6 @@ public class TaskControllerITest {
                 .andExpect(jsonPath("$.priority",
                         is(task.getPriority())))
                 .andExpect(jsonPath("$.labels[*].name", containsInAnyOrder("test_label1", "test_label2")));
-
     }
 
     @Test
@@ -138,13 +142,13 @@ public class TaskControllerITest {
                 .andDo(print());
     }
 
+
     @Test
     @DisplayName("it updates a tasks when it exists")
     public void testUpdateTaskPositive() throws Exception {
         // given
         Task savedTask = new Task("test_task", false, false, 1);
         taskDatabaseRepository.save(savedTask);
-
         Task updatedTask = new Task("test_task_updated", true, true, 2);
 
         // when
@@ -167,11 +171,8 @@ public class TaskControllerITest {
         // given
         long id = 53L;
         Task savedTask = new Task("test_task", false, false, 1);
-
         taskDatabaseRepository.save(savedTask);
-
         Task updatedTask = new Task("test_task_updated", false, false, 1);
-
 
         // when
         ResultActions response = mockMvc.perform(put("/tasks/{id}", id)
@@ -183,14 +184,17 @@ public class TaskControllerITest {
                 .andDo(print());
     }
 
-
     @Test
     @DisplayName("it deleted a task")
     public void testDeleteTask() throws Exception {
         // given
-        Task task = new Task("test_task", false, false, 1);
-
+        Set<Label> labels = new HashSet<>();
+        labels.add(new Label("test_label1"));
+        labels.add(new Label("test_label2"));
+        Task task = new Task("test_task", false, false, 1, labels);
         taskDatabaseRepository.save(task);
+
+        List<Long> labelIds = task.getLabels().stream().map(Label::getId).toList();
 
         // when
         ResultActions response = mockMvc.perform(delete("/tasks/{id}", task.getId()));
@@ -198,6 +202,8 @@ public class TaskControllerITest {
         // then
         response.andExpect(status().isOk())
                 .andDo(print());
+
+        labelIds.forEach(id -> Assertions.assertTrue(labelDatabaseRepository.findById(id).isEmpty()));
     }
 
 }

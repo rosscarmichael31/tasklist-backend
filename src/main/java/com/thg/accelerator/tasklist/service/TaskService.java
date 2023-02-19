@@ -16,7 +16,6 @@ public class TaskService implements TaskServiceInterface {
 
     private final TaskDatabaseRepository taskDatabaseRepository;
 
-
     public TaskService(TaskDatabaseRepository taskDatabaseRepository) {
         this.taskDatabaseRepository = taskDatabaseRepository;
     }
