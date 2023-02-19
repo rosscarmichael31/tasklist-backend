@@ -74,19 +74,16 @@ public class TaskController {
         try {
             Optional<Task> optionalTask = taskService.findById(id);
             if (optionalTask.isPresent()) {
-                Task updatedTask = new Task(
-                        id,
-                        task.getDescription(),
-                        task.isComplete(),
-                        task.isInProgress(),
-                        task.getPriority(),
-                        task.getLabels()
-                );
+                Task existingTask = optionalTask.get();
+                existingTask.setDescription(task.getDescription());
+                existingTask.setComplete(task.isComplete());
+                existingTask.setInProgress(task.isInProgress());
+                existingTask.setPriority(task.getPriority());
+                existingTask.setLabels(task.getLabels());
 
-                taskService.delete(id);
-                taskService.create(updatedTask);
+                taskService.update(existingTask, existingTask.getId());
 
-                return new ResponseEntity<>(updatedTask, HttpStatus.OK);
+                return new ResponseEntity<>(existingTask, HttpStatus.OK);
             } else {
                 return ResponseEntity.notFound().build();
             }

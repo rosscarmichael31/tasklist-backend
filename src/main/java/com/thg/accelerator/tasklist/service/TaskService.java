@@ -61,7 +61,6 @@ public class TaskService implements TaskServiceInterface {
     @Override
     public Task update(Task task, long id) {
         return taskDatabaseRepository.save(task);
-
     }
 
     @Override
